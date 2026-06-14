@@ -1932,8 +1932,12 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 18px 24px;
   width: 100%;
+}
+
+.system-action-row.is-marker-row {
+  flex-wrap: wrap;
 }
 
 .system-action-row.is-top-row {
