@@ -33,7 +33,17 @@ The GitHub Pages URL is:
 https://tz-dev.github.io/space-flyer/
 ```
 
-Enable GitHub Pages for the repository and point it at the built Vite output when publishing.
+---
+
+## Screenshots
+
+![Space-Flyer Screenshot 1](public/screenshots/screenshot1.png)
+
+![Space-Flyer Screenshot 2](public/screenshots/screenshot2.png)
+
+![Space-Flyer Screenshot 3](public/screenshots/screenshot3.png)
+
+![Space-Flyer Screenshot 4](public/screenshots/screenshot4.png)
 
 ---
 
@@ -100,54 +110,7 @@ Controls can be changed in the Options menu. `Esc` is reserved for the menu.
 
 ## Project structure
 
-```txt
-src/
-  core/
-    configSchema.js
-    saveGame.js
-    store.js
-    TerrainFlightController.js
-    TerrainInputController.js
-
-  data/
-    createDemoGalaxy.js
-
-  generation/
-    nameGenerator.js
-
-  render/
-    AppRenderer.js
-
-  views/
-    StarMapView.js
-    SystemView.js
-    TerrainView.js
-    StellarObjectView.js
-
-  materials/
-    TerrainSurfaceMaterial.js
-    PlanetSurfaceMaterial.js
-    PlanetRingMaterial.js
-    GravityGridMaterial.js
-    OrbitAuroraRibbonMaterial.js
-    BlackHoleMaterial.js
-    ...
-    terrain/
-      terrainRegistry.js
-      auroraLayer.js
-      shaders/
-
-  ui/
-    OptionsMenu.js
-    SystemConfigPanel.js
-    StarLogPanel.js
-    StarMapPanel.js
-    SystemInfoPanel.js
-    SystemPlanetListPanel.js
-    StellarObjectInfoPanel.js
-    TerrainBookmarkPanel.js
-    ...
-```
+Info can be found in doc/overview.md-
 
 ---
 
@@ -264,4 +227,6 @@ Known next-level improvements:
 
 ## License
 
-No license file is included yet. Add one before treating this as an open-source release.
+This project is released under the MIT License.
+
+You are free to use, modify, fork, and distribute the code, including for commercial purposes, as long as the original license notice is included.
