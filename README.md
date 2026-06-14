@@ -37,13 +37,17 @@ https://tz-dev.github.io/space-flyer/
 
 ## Screenshots
 
-![Space-Flyer Screenshot 1](public/screenshots/screenshot1.png)
+![Space-Flyer Screenshot 1](public/screenshots/screenshot01.png)
+Star Map
 
-![Space-Flyer Screenshot 2](public/screenshots/screenshot2.png)
+![Space-Flyer Screenshot 2](public/screenshots/screenshot02.png)
+System Map
 
-![Space-Flyer Screenshot 3](public/screenshots/screenshot3.png)
+![Space-Flyer Screenshot 3](public/screenshots/screenshot03.png)
+Orbit View
 
-![Space-Flyer Screenshot 4](public/screenshots/screenshot4.png)
+![Space-Flyer Screenshot 4](public/screenshots/screenshot04.png)
+Terrain View
 
 ---
 
