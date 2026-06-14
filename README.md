@@ -77,6 +77,24 @@ npm run build
 
 ---
 
+## Dev Mode
+
+Press `F2` to open or close Dev Mode.
+
+Dev Mode exposes the configuration panels for editing systems, stars, planets, moons, terrain shaders, atmosphere, fog, clouds, aurora, rings, space settings and stellar objects. Changes made through these panels are treated as config edits and are included in Save / Load Config exports and browser saves.
+
+`F2` is the default Dev Toggle key and can be changed in the Options menu. `Esc` remains reserved for opening and closing Options.
+
+---
+
+## First Launch / Shader Warm-up
+
+Space-Flyer compiles and warms up many shader and view combinations during startup. Depending on hardware and browser, the initial warm-up can take several minutes, commonly around **3–5 minutes** on slower systems.
+
+After warm-up is complete, switching between Star Map, System View, Orbit View, Terrain View, Stellar Object View and bookmarked locations should have (if at all little to) no additional waiting time.
+
+---
+
 ## Controls
 
 Default controls:
