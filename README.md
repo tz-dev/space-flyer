@@ -120,7 +120,7 @@ Controls can be changed in the Options menu. `Esc` is reserved for the menu.
 
 ## Project structure
 
-Info can be found in doc/overview.md-
+Info can be found in doc/overview.md.
 
 ---
 
