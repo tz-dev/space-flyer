@@ -16,6 +16,7 @@ export class SystemActionBar {
 
     this.unsubscribe = null;
     this.isControlsCollapsed = true;
+    this.lastRenderedActiveView = null;
 
     this.handleClick = this.handleClick.bind(this);
     this.handleInput = this.handleInput.bind(this);
@@ -125,6 +126,14 @@ export class SystemActionBar {
 
     notifySystemInteraction();
 
+    if (field === "orbitLinesAllEnabled") {
+      this.store.setSystemViewState({
+        orbitLinesEnabled: nextValue,
+        moonLinesEnabled: nextValue
+      });
+      return;
+    }
+
     this.store.setSystemViewState({
       [field]: nextValue
     });
@@ -135,10 +144,17 @@ export class SystemActionBar {
     const { activeView, systemView } = state;
 
     if (activeView !== "system-view") {
+      this.lastRenderedActiveView = activeView;
       this.element.innerHTML = "";
       this.element.classList.remove("is-visible");
       return;
     }
+
+    if (this.lastRenderedActiveView !== "system-view") {
+      this.isControlsCollapsed = true;
+    }
+
+    this.lastRenderedActiveView = activeView;
 
     const actionMarkup = this.renderActionMarkup(systemView);
 
@@ -253,8 +269,14 @@ export class SystemActionBar {
   }
 
   renderPlanetMarkerControls(systemView) {
+    const orbitLinesAllEnabled =
+      Boolean(systemView.orbitLinesEnabled ?? true) &&
+      Boolean(systemView.moonLinesEnabled ?? true);
+
     return `
       <div class="system-action-row is-marker-row">
+        ${renderCheckbox("gravityGridEnabled", "Gravity Grid", systemView.gravityGridEnabled)}
+        ${renderCheckbox("orbitLinesAllEnabled", "Orbital Lines", orbitLinesAllEnabled)}
         ${renderCheckbox("planetGridEnabled", "Planet Grid", systemView.planetGridEnabled)}
         ${renderCheckbox("inclinationMarkersEnabled", "Inclination", systemView.inclinationMarkersEnabled)}
         ${renderCheckbox("equatorMarkersEnabled", "Equator", systemView.equatorMarkersEnabled)}
@@ -310,6 +332,7 @@ function readSystemViewControl(control, field) {
     field === "gravityGridEnabled" ||
     field === "orbitLinesEnabled" ||
     field === "moonLinesEnabled" ||
+    field === "orbitLinesAllEnabled" ||
     field === "planetGridEnabled" ||
     field === "inclinationMarkersEnabled" ||
     field === "equatorMarkersEnabled"
