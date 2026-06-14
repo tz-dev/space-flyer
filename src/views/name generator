@@ -1,0 +1,265 @@
+Zwei Dinge aus dem Testlauf, die ich noch fixen sollte, bevor du es einbaust:
+
+Zeile 158 (generateBlackHoleName): ${prefix} ${coordDesignation(seed)} fügt bei Präfixen wie "GRO J" eine zusätzliche Lücke ein → "GRO J 0738+2127" statt "GRO J0738+2127". Quasar-Funktion macht das mit endsWith("J") schon richtig, Black-Hole-Funktion nicht.
+Sterne-Kollisionsrate: 16795/25000 Kollisionen – die Silbenbänke sind mit 26×20×20 = 10.400 Kombinationen (bei 70% 3-Silben-Quote) zu klein für 25k. Optionen: dritte Silbenbank vergrößern, zusätzliches Suffix-Element (z.B. Ziffer/Buchstabe wie "HD"-Nummer), oder den Bayer-Anteil von 40% auf z.B. 80% erhöhen, da Bayer-Raum (24 Griechisch × 47 Konstellationen = 1128) auch klein ist – am saubersten: Silben-Pool vergrößern.
+
+// nameGenerator.js
+//
+// Deterministischer, kombinatorischer Namensgenerator für Sterne, Planeten
+// und stellare Objekte (Schwarze Löcher, Pulsare, Neutronensterne, Quasare, Nebel).
+//
+// Prinzip: kein vorab generiertes Lexikon mit 25k Einträgen, sondern wenige
+// Bausteinlisten + ein Integer-Seed -> deterministischer Name. Gleicher Seed
+// liefert immer den gleichen Namen (wichtig für reproduzierbare Galaxien).
+//
+// Die Schemata orientieren sich an realen Katalog-Konventionen, weil diese
+// genau die Eigenschaft haben, die wir brauchen: riesiger, kollisionsarmer
+// Namensraum bei minimalem Datenaufwand.
+
+// ---------------------------------------------------------------------------
+// Integer-Hashing (keine String-Allokation, siehe Perf-Diskussion zu
+// createMoonGeometry – gleiches Prinzip hier für Namens-Seeds)
+// ---------------------------------------------------------------------------
+
+function hashInt(seed, salt = 0) {
+  let h = (seed ^ (salt * 0x9e3779b9)) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
+function pick(list, seed, salt) {
+  return list[hashInt(seed, salt) % list.length];
+}
+
+function pad(num, width) {
+  return String(num).padStart(width, "0");
+}
+
+// ---------------------------------------------------------------------------
+// Koordinaten-Designator (J2000-Stil: RA in HHMM, Dec in ±DDMM)
+// Namensraum: 24*60 * 2*90*60 ≈ 15,5 Mio Kombinationen
+// ---------------------------------------------------------------------------
+
+function coordDesignation(seed) {
+  const raTotalMinutes = hashInt(seed, 1) % (24 * 60);
+  const raH = Math.floor(raTotalMinutes / 60);
+  const raM = raTotalMinutes % 60;
+
+  const decTotalMinutes = hashInt(seed, 2) % (90 * 60);
+  const decD = Math.floor(decTotalMinutes / 60);
+  const decM = decTotalMinutes % 60;
+  const decSign = hashInt(seed, 3) % 2 === 0 ? "+" : "-";
+
+  return `${pad(raH, 2)}${pad(raM, 2)}${decSign}${pad(decD, 2)}${pad(decM, 2)}`;
+}
+
+// ---------------------------------------------------------------------------
+// Bausteinlisten
+// ---------------------------------------------------------------------------
+
+const GREEK_LETTERS = [
+  "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta",
+  "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi",
+  "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"
+];
+
+// Genitiv-Formen ausgewählter Sternbilder (Auszug der 88 IAU-Konstellationen,
+// bei Bedarf einfach erweiterbar - die Liste skaliert den Namensraum linear)
+const CONSTELLATIONS_GEN = [
+  "Andromedae", "Aquarii", "Aquilae", "Arae", "Aurigae", "Bootis",
+  "Cancri", "Canis Majoris", "Canis Minoris", "Capricorni", "Carinae",
+  "Cassiopeiae", "Centauri", "Cephei", "Ceti", "Coronae Borealis",
+  "Corvi", "Crucis", "Cygni", "Delphini", "Draconis", "Eridani",
+  "Geminorum", "Herculis", "Hydrae", "Leonis", "Librae", "Lupi",
+  "Lyrae", "Monocerotis", "Ophiuchi", "Orionis", "Pegasi", "Persei",
+  "Phoenicis", "Piscium", "Sagittarii", "Scorpii", "Serpentis",
+  "Tauri", "Trianguli", "Ursae Majoris", "Ursae Minoris", "Velorum",
+  "Virginis", "Vulpeculae"
+];
+
+// Katalog-Präfixe pro Kategorie (reale Vorbilder in Klammern)
+const SURVEY_PREFIXES = {
+  blackHole: ["GRS", "GRO J", "MAXI J", "Swift J"],   // (Cygnus X-1, GRS 1915+105)
+  pulsar: ["PSR J"],                                   // (PSR J0534+2200 = Krebspulsar)
+  neutronStar: ["RX J", "1E", "SAX J", "1RXS J"],      // (RX J0822-4300)
+  quasar: ["3C", "PKS", "SDSS J", "QSO J"],            // (3C 273)
+  nebula: ["NGC", "IC", "Sh2", "RCW"]                  // (NGC 7000, Sh2-155)
+};
+
+// Silbenbänke für "echte" Eigennamen (Sterne, Nebel mit Flair)
+const SYLLABLES_START = [
+  "Al", "Be", "Cor", "Dra", "El", "Fen", "Gar", "Hyl", "Iv", "Jor",
+  "Kel", "Lor", "Mir", "Nyx", "Or", "Pyr", "Quel", "Rha", "Sol", "Tor",
+  "Ul", "Vey", "Wyn", "Xal", "Yir", "Zar"
+];
+
+const SYLLABLES_MID = [
+  "an", "el", "ar", "in", "or", "us", "ith", "ond", "ach", "ev",
+  "ira", "oth", "yra", "esh", "ona", "uri", "ael", "imir", "ova", "eth"
+];
+
+const SYLLABLES_END = [
+  "us", "a", "is", "on", "ar", "ir", "eth", "ion", "ax", "ys",
+  "or", "iel", "ova", "esh", "une", "ix", "yn", "om", "ara", "esti"
+];
+
+// Beschreibende Nebel-Namen
+const NEBULA_ADJECTIVES = [
+  "Crimson", "Azure", "Veiled", "Burning", "Whispering", "Silent",
+  "Shattered", "Glowing", "Frozen", "Spiraling", "Drifting", "Radiant",
+  "Hollow", "Wandering", "Ember", "Twilight", "Pale", "Echoing",
+  "Forgotten", "Luminous", "Shrouded", "Distant", "Restless", "Ashen"
+];
+
+const NEBULA_NOUNS = [
+  "Veil", "Crown", "Reach", "Cradle", "Drift", "Bloom", "Shroud",
+  "Halo", "Expanse", "Curtain", "Wisp", "Crest", "Span", "Garden",
+  "Spire", "Tide", "Plume", "Arc", "Hollow", "Web"
+];
+
+// Exoplaneten-Suffixe (Konvention: erster entdeckter Planet = "b", dann c, d, ...)
+const PLANET_SUFFIXES = "bcdefghijklmnopqrstuvwxyz".split("");
+
+// ---------------------------------------------------------------------------
+// Pro-Kategorie Generatoren
+// ---------------------------------------------------------------------------
+
+function generateProperName(seed, saltOffset = 0) {
+  const start = pick(SYLLABLES_START, seed, saltOffset + 1);
+  const mid = pick(SYLLABLES_MID, seed, saltOffset + 2);
+  const end = pick(SYLLABLES_END, seed, saltOffset + 3);
+  // ~30% der Namen bekommen nur 2 Silben -> mehr Varianz in Länge/Klang
+  const useMid = hashInt(seed, saltOffset + 4) % 10 < 7;
+  return useMid ? `${start}${mid}${end}` : `${start}${end}`;
+}
+
+function generateStarName(seed) {
+  // Mischung: ~60% Eigenname, ~40% Bayer-Designation (Logik der Profis)
+  if (hashInt(seed, 10) % 10 < 6) {
+    return generateProperName(seed, 100);
+  }
+  const greek = pick(GREEK_LETTERS, seed, 11);
+  const constellation = pick(CONSTELLATIONS_GEN, seed, 12);
+  return `${greek} ${constellation}`;
+}
+
+function generatePlanetName(seed, parentStarName) {
+  const index = hashInt(seed, 20) % PLANET_SUFFIXES.length;
+  return `${parentStarName} ${PLANET_SUFFIXES[index]}`;
+}
+
+function generateBlackHoleName(seed) {
+  // ~50% "Cyg X-1"-Stil (Konstellation + X-Nummer), ~50% Koordinaten-Katalog
+  if (hashInt(seed, 30) % 2 === 0) {
+    const constellation = pick(CONSTELLATIONS_GEN, seed, 31);
+    // Abkürzung: erste 3 Buchstaben, wie "Cyg", "Sco" etc.
+    const abbr = constellation.slice(0, 3);
+    const number = (hashInt(seed, 32) % 12) + 1;
+    return `${abbr} X-${number}`;
+  }
+  const prefix = pick(SURVEY_PREFIXES.blackHole, seed, 33);
+  return `${prefix} ${coordDesignation(seed)}`;
+}
+
+function generatePulsarName(seed) {
+  return `PSR J${coordDesignation(seed)}`;
+}
+
+function generateNeutronStarName(seed) {
+  const prefix = pick(SURVEY_PREFIXES.neutronStar, seed, 40);
+  return `${prefix} ${coordDesignation(seed)}`;
+}
+
+function generateQuasarName(seed) {
+  const prefix = pick(SURVEY_PREFIXES.quasar, seed, 50);
+  if (prefix.endsWith("J")) {
+    return `${prefix}${coordDesignation(seed)}`;
+  }
+  // "3C ###" / "PKS ####±##"-Stil mit reiner Katalognummer
+  const number = (hashInt(seed, 51) % 9999) + 1;
+  return `${prefix} ${number}`;
+}
+
+function generateNebulaName(seed) {
+  // ~50% beschreibender Eigenname, ~50% Katalognummer
+  if (hashInt(seed, 60) % 2 === 0) {
+    const adjective = pick(NEBULA_ADJECTIVES, seed, 61);
+    const noun = pick(NEBULA_NOUNS, seed, 62);
+    return `${adjective} ${noun} Nebula`;
+  }
+  const prefix = pick(SURVEY_PREFIXES.nebula, seed, 63);
+  const number = (hashInt(seed, 64) % 9999) + 1;
+  return `${prefix} ${number}`;
+}
+
+// ---------------------------------------------------------------------------
+// Öffentliche API
+// ---------------------------------------------------------------------------
+
+export const STELLAR_CATEGORIES = Object.freeze({
+  STAR: "star",
+  PLANET: "planet",
+  BLACK_HOLE: "blackHole",
+  PULSAR: "pulsar",
+  NEUTRON_STAR: "neutronStar",
+  QUASAR: "quasar",
+  NEBULA: "nebula"
+});
+
+/**
+ * Generiert einen deterministischen Namen für ein stellares Objekt.
+ *
+ * @param {string} category - einer der STELLAR_CATEGORIES Werte
+ * @param {number} seed - eindeutiger Integer-Seed des Objekts (z.B. globale Objekt-ID)
+ * @param {object} [options]
+ * @param {string} [options.parentStarName] - erforderlich für category === "planet"
+ * @returns {string}
+ */
+export function generateStellarName(category, seed, options = {}) {
+  switch (category) {
+    case STELLAR_CATEGORIES.STAR:
+      return generateStarName(seed);
+    case STELLAR_CATEGORIES.PLANET:
+      if (!options.parentStarName) {
+        throw new Error("generateStellarName: 'parentStarName' wird für Planeten benötigt");
+      }
+      return generatePlanetName(seed, options.parentStarName);
+    case STELLAR_CATEGORIES.BLACK_HOLE:
+      return generateBlackHoleName(seed);
+    case STELLAR_CATEGORIES.PULSAR:
+      return generatePulsarName(seed);
+    case STELLAR_CATEGORIES.NEUTRON_STAR:
+      return generateNeutronStarName(seed);
+    case STELLAR_CATEGORIES.QUASAR:
+      return generateQuasarName(seed);
+    case STELLAR_CATEGORIES.NEBULA:
+      return generateNebulaName(seed);
+    default:
+      throw new Error(`generateStellarName: unbekannte Kategorie "${category}"`);
+  }
+}
+
+/**
+ * Erzeugt einen garantiert eindeutigen Namen, indem bei Kollisionen
+ * (innerhalb des übergebenen Sets) der Seed leicht variiert wird.
+ * In der Praxis bei den hier genutzten Namensräumen extrem selten nötig.
+ *
+ * @param {string} category
+ * @param {number} seed
+ * @param {Set<string>} usedNames
+ * @param {object} [options]
+ */
+export function generateUniqueStellarName(category, seed, usedNames, options = {}) {
+  let attempt = 0;
+  let name = generateStellarName(category, seed, options);
+
+  while (usedNames.has(name) && attempt < 50) {
+    attempt += 1;
+    name = generateStellarName(category, hashInt(seed, 1000 + attempt), options);
+  }
+
+  usedNames.add(name);
+  return name;
+}
