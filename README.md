@@ -2,8 +2,6 @@
 
 An intentionally inaccurate browser space-sim and visual exploration sandbox built with **Vite**, **Three.js** and plain ES modules.
 
-- Live demo: <https://tz-dev.github.io/space-flyer/>
-
 > Space-Flyer is not a scientific simulator. It is a stylized, configurable space playground focused on atmosphere, shader-driven worlds, procedural systems and fast iteration.
 
 ---
@@ -22,16 +20,6 @@ An intentionally inaccurate browser space-sim and visual exploration sandbox bui
   - saved star log, bookmarks, terrain bookmarks, options and controls.
 - **Adaptive Terrain Performance** with terrain-only render scaling and optional pixelation based on a target FPS.
 - **Config / Dev UI** for planets, terrain shaders, atmosphere, fog, clouds, aurora, rings, moons, space shaders, display settings and controls.
-
----
-
-## Live demo
-
-The GitHub Pages URL is:
-
-```txt
-https://tz-dev.github.io/space-flyer/
-```
 
 ---
 
