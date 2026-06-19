@@ -4,13 +4,6 @@ Current status: after the persistence, UI, controls, and adaptive terrain passes
 
 Project: browser-based space sim / visual sandbox built with Vite, Three.js, ES modules, JSON-first configuration, and separated runtime state.
 
-Patch workflow for future work:
-
-- Small changes: provide exact search/replace blocks with correct indentation.
-- Larger integration passes: return a ZIP, excluding `node_modules` and `dist`.
-- Do not touch unrelated areas when working on generator, shader, or renderer logic.
-- Prefer minimal, testable, reversible changes.
-
 ---
 
 ## Current Feature Set
